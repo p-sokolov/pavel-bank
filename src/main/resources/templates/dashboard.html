@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>PavelBank — Dashboard</title>
+    <link rel="stylesheet" href="/ui.css" />
+    <script defer src="/ui.js"></script>
+</head>
+<body>
+<header class="topbar">
+    <div class="container topbar__inner">
+        <a class="brand" href="/ui/dashboard">PavelBank</a>
+        <div class="topbar__right">
+            <span class="chip">Hello, <span th:text="${user.name}"></span></span>
+            <span class="chip">UID: <span th:text="${user.id}"></span></span>
+            <form method="post" action="/ui/logout" class="inline">
+                <button class="btn btn--ghost" type="submit">Logout</button>
+            </form>
+        </div>
+    </div>
+</header>
+
+<main class="container stack">
+    <section class="card">
+        <div class="row row--space">
+            <div>
+                <h1 class="h1">My accounts</h1>
+                <div class="muted">Click an account to manage it and view transaction history.</div>
+            </div>
+            <div class="right">
+                <a class="btn btn--secondary" href="/ui/login">Switch user</a>
+            </div>
+        </div>
+
+        <div class="table-wrap" th:if="${accounts != null and !accounts.isEmpty()}">
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>Account</th>
+                    <th>Type</th>
+                    <th>Currency</th>
+                    <th class="num">Balance</th>
+                    <th>Status</th>
+                    <th>Deposit end</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="a : ${accounts}">
+                    <td>
+                        <a th:href="|/ui/accounts/${a.id}|" class="linkmono" th:text="${a.id}"></a>
+                    </td>
+                    <td th:text="${a.type}"></td>
+                    <td th:text="${a.currency}"></td>
+                    <td class="num" th:text="${a.balance}"></td>
+                    <td>
+                        <span th:if="${a.blocked}" class="badge badge--danger" th:text="|BLOCKED: ${a.blockReason}|"></span>
+                        <span th:if="${!a.blocked}" class="badge badge--ok">ACTIVE</span>
+                    </td>
+                    <td th:text="${a.depositEndDate} ?: '-'"></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="empty" th:if="${accounts == null or accounts.isEmpty()}">
+            You have no accounts yet. Create one below.
+        </div>
+    </section>
+
+    <section class="grid grid--2">
+        <div class="card">
+            <h2 class="h2">Create new account</h2>
+            <form method="post" action="/ui/accounts" class="stack">
+                <label class="label">Type</label>
+                <select class="select" name="type" id="createAccountType">
+                    <option th:each="t : ${accountTypes}" th:value="${t}" th:text="${t}"></option>
+                </select>
+
+                <label class="label">Currency</label>
+                <select class="select" name="currency">
+                    <option th:each="c : ${currencies}" th:value="${c}" th:text="${c}"></option>
+                </select>
+
+                <div id="depositEndDateBox" class="stack hidden">
+                    <label class="label">Deposit end date</label>
+                    <input class="input" name="depositEndDate" type="date" />
+                    <div class="muted">Required only for DEPOSIT.</div>
+                </div>
+
+                <button class="btn" type="submit">Create</button>
+            </form>
+        </div>
+
+        <div class="card">
+            <h2 class="h2">Quick transfer</h2>
+            <p class="muted">Paste account UUIDs. Amount must match currencies.</p>
+            <form method="post" action="/ui/transfer" class="stack">
+                <label class="label">From account UUID</label>
+                <input class="input" name="from" placeholder="From account UUID" required />
+
+                <label class="label">To account UUID</label>
+                <input class="input" name="to" placeholder="To account UUID" required />
+
+                <label class="label">Amount</label>
+                <input class="input" name="amount" placeholder="100.00" required />
+
+                <button class="btn btn--secondary" type="submit">Transfer</button>
+            </form>
+
+        </div>
+    </section>
+
+</main>
+
+</body>
+</html>

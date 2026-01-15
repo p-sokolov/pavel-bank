@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>PavelBank — Login</title>
+    <link rel="stylesheet" href="/ui.css" />
+    <script defer src="/ui.js"></script>
+</head>
+<body>
+<header class="topbar">
+    <div class="container topbar__inner">
+        <div class="brand">PavelBank</div>
+    </div>
+</header>
+
+<main class="container">
+    <div class="grid grid--2">
+        <section class="card">
+            <h1 class="h1">Login by UID</h1>
+            <p class="muted">Paste a user UUID or pick one from the list.</p>
+
+            <form method="post" action="/ui/login" class="stack">
+                <label class="label">User UID</label>
+                <input class="input" name="userId" placeholder="e.g. 550e8400-e29b-41d4-a716-446655440000" required />
+                <button class="btn" type="submit">Login</button>
+            </form>
+
+            <hr class="sep"/>
+
+            <h2 class="h2">Pick existing user</h2>
+            <form method="post" action="/ui/login" class="stack">
+                <label class="label">Users</label>
+                <select class="select" name="userId" th:if="${users != null and !users.isEmpty()}">
+                    <option th:each="u : ${users}"
+                            th:value="${u.id}"
+                            th:text="|${u.name} — ${u.id}|"></option>
+                </select>
+                <div class="muted" th:if="${users == null or users.isEmpty()}">
+                    No users yet. Create one on the right.
+                </div>
+                <button class="btn btn--secondary" type="submit" th:disabled="${users == null or users.isEmpty()}">Login as selected</button>
+            </form>
+        </section>
+
+        <section class="card">
+            <h2 class="h2">Create user</h2>
+            <form method="post" action="/ui/users" class="stack">
+                <label class="label">Name</label>
+                <input class="input" name="name" placeholder="Alice" required />
+                <button class="btn" type="submit">Create user</button>
+            </form>
+
+            <hr class="sep"/>
+
+            <h2 class="h2">First start helper</h2>
+            <p class="muted">
+                Note: the app automatically created 2 demo users:
+                <b>Alice</b> and <b>Bob</b>. Their UIDs are printed in the application logs.
+            </p>
+
+            <form method="post" action="/ui/reset-session">
+                <button class="btn btn--ghost" type="submit">Reset session</button>
+            </form>
+        </section>
+    </div>
+</main>
+
+
+</body>
+</html>

@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>PavelBank — Account</title>
+    <link rel="stylesheet" href="/ui.css" />
+    <script defer src="/ui.js"></script>
+</head>
+<body>
+<header class="topbar">
+    <div class="container topbar__inner">
+        <a class="brand" href="/ui/dashboard">← Dashboard</a>
+        <div class="topbar__right">
+            <span class="chip">Account</span>
+            <span class="chip mono" th:text="${account.id}"></span>
+            <form method="post" action="/ui/logout" class="inline">
+                <button class="btn btn--ghost" type="submit">Logout</button>
+            </form>
+        </div>
+    </div>
+</header>
+
+<main class="container stack">
+    <section class="card">
+        <div class="row row--space">
+            <div>
+                <h1 class="h1">Account</h1>
+                <div class="muted mono" th:text="${account.id}"></div>
+            </div>
+            <div class="right">
+                <span class="badge" th:text="${account.type}"></span>
+                <span class="badge badge--secondary" th:text="${account.currency}"></span>
+            </div>
+        </div>
+
+        <div class="grid grid--3">
+            <div class="kpi">
+                <div class="kpi__label">Balance</div>
+                <div class="kpi__value" th:text="${account.balance}"></div>
+            </div>
+            <div class="kpi">
+                <div class="kpi__label">Status</div>
+                <div class="kpi__value">
+                    <span th:if="${account.blocked}" class="badge badge--danger" th:text="|BLOCKED: ${account.blockReason}|"></span>
+                    <span th:if="${!account.blocked}" class="badge badge--ok">ACTIVE</span>
+                </div>
+            </div>
+            <div class="kpi">
+                <div class="kpi__label">Deposit end</div>
+                <div class="kpi__value" th:text="${account.depositEndDate} ?: '-'"></div>
+            </div>
+        </div>
+
+        <hr class="sep"/>
+
+        <div class="grid grid--2">
+            <div class="card card--inner">
+                <h2 class="h2">Cash operations</h2>
+
+                <form method="post" th:action="|/ui/accounts/${account.id}/deposit|" class="stack">
+                    <label class="label">Deposit amount</label>
+                    <input class="input" name="amount" placeholder="100.00" required />
+                    <button class="btn" type="submit">Deposit</button>
+                </form>
+
+                <form method="post" th:action="|/ui/accounts/${account.id}/withdraw|" class="stack">
+                    <label class="label">Withdraw amount</label>
+                    <input class="input" name="amount" placeholder="50.00" required />
+                    <button class="btn btn--secondary" type="submit">Withdraw</button>
+                </form>
+            </div>
+
+            <div class="card card--inner">
+                <h2 class="h2">Actions</h2>
+
+                <form method="post" th:action="|/ui/accounts/${account.id}/unblock|" class="stack" th:if="${account.blocked}">
+                    <button class="btn btn--secondary" type="submit">Unblock</button>
+                    <div class="muted">Unblock works only if DEBT is fully repaid.</div>
+                </form>
+
+                <details class="details">
+                    <summary>Service / demo operations</summary>
+                    <div class="stack">
+                        <form method="post" th:action="|/ui/accounts/${account.id}/block|" class="stack">
+                            <label class="label">Block reason</label>
+                            <select class="select" name="reason">
+                                <option value="FRAUD">FRAUD</option>
+                                <option value="OTHER">OTHER</option>
+                                <option value="DEBT">DEBT</option>
+                            </select>
+                            <button class="btn btn--ghost" type="submit" data-confirm="Block this account?">Block</button>
+                            <div class="muted">DEBT block is controlled by debt operations.</div>
+                        </form>
+
+                        <form method="post" th:action="|/ui/accounts/${account.id}/debt|" class="stack">
+                            <label class="label">Mark debt amount</label>
+                            <input class="input" name="amount" placeholder="200.00" />
+                            <button class="btn btn--ghost" type="submit" data-confirm="Mark debt for this account?">Mark debt</button>
+                        </form>
+
+                        <form method="post" th:action="|/ui/accounts/${account.id}/repay-debt|" class="stack">
+                            <label class="label">Repay debt amount</label>
+                            <input class="input" name="amount" placeholder="50.00" />
+                            <button class="btn btn--ghost" type="submit">Repay debt</button>
+                        </form>
+                    </div>
+                </details>
+
+            </div>
+        </div>
+    </section>
+
+    <section class="card">
+        <h2 class="h2">Transaction history</h2>
+        <div class="table-wrap" th:if="${history != null and !history.isEmpty()}">
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>Time</th>
+                    <th>From</th>
+                    <th>To</th>
+                    <th class="num">Amount</th>
+                    <th>Currency</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="t : ${history}">
+                    <td th:text="${t.createdAt}"></td>
+                    <td class="mono" th:text="${t.fromAccountId}"></td>
+                    <td class="mono" th:text="${t.toAccountId}"></td>
+                    <td class="num" th:text="${t.amount}"></td>
+                    <td th:text="${t.currency}"></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="empty" th:if="${history == null or history.isEmpty()}">
+            No transactions yet.
+        </div>
+    </section>
+</main>
+
+</body>
+</html>

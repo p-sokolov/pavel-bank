@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title th:text="${title} ?: 'PavelBank'">PavelBank</title>
+    <link rel="stylesheet" href="/ui.css" />
+    <script defer src="/ui.js"></script>
+</head>
+<body>
+<header class="topbar">
+    <div class="container topbar__inner">
+        <a class="brand" href="/ui/dashboard">PavelBank</a>
+        <div class="topbar__right" th:if="${session.UI_USER_ID != null}">
+            <span class="chip">UID: <span th:text="${session.UI_USER_ID}"></span></span>
+            <form method="post" action="/ui/logout" class="inline">
+                <button class="btn btn--ghost" type="submit">Logout</button>
+            </form>
+        </div>
+    </div>
+</header>
+
+<main class="container" th:fragment="content">
+    <!-- page content -->
+</main>
+
+<footer class="footer">
+    <div class="container">
+        <div class="footer__inner">
+            <div class="muted">© 2024 PavelBank. All rights reserved.</div>
+            <div class="muted">Built with ♥ using Spring Boot and Thymeleaf.</div>
+        </div>
+    </div>
+</footer>
+</body>
+</html>
