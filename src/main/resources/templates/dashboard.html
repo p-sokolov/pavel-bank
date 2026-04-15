@@ -13,8 +13,8 @@
         <a class="brand" href="/ui/dashboard">PavelBank</a>
         <div class="topbar__right">
             <span class="chip">Hello, <span th:text="${user.name}"></span></span>
-            <span class="chip">UID: <span th:text="${user.id}"></span></span>
-            <form method="post" action="/ui/logout" class="inline">
+            <span class="chip">UID: <span class="mono copyable" th:text="${user.id}" th:attr="data-copy-text=${user.id},title='Click to copy UID',tabindex='0'" role="button" aria-label="Copy user UID"></span></span>
+            <form method="post" action="/ui/logout" class="inline" data-async-form="true">
                 <button class="btn btn--ghost" type="submit">Logout</button>
             </form>
         </div>
@@ -26,7 +26,7 @@
         <div class="row row--space">
             <div>
                 <h1 class="h1">My accounts</h1>
-                <div class="muted">Click an account to manage it and view transaction history.</div>
+                <div class="muted">Click an account UUID to copy it or open the account page for details.</div>
             </div>
             <div class="right">
                 <a class="btn btn--secondary" href="/ui/login">Switch user</a>
@@ -48,7 +48,10 @@
                 <tbody>
                 <tr th:each="a : ${accounts}">
                     <td>
-                        <a th:href="|/ui/accounts/${a.id}|" class="linkmono" th:text="${a.id}"></a>
+                        <div class="stack" style="gap:4px">
+                            <span class="mono copyable" th:text="${a.id}" th:attr="data-copy-text=${a.id},title='Click to copy account UUID',tabindex='0'" role="button" aria-label="Copy account UUID"></span>
+                            <a th:href="|/ui/accounts/${a.id}|" class="linkmono">Open account</a>
+                        </div>
                     </td>
                     <td th:text="${a.type}"></td>
                     <td th:text="${a.currency}"></td>
@@ -71,7 +74,7 @@
     <section class="grid grid--2">
         <div class="card">
             <h2 class="h2">Create new account</h2>
-            <form method="post" action="/ui/accounts" class="stack">
+            <form method="post" action="/ui/accounts" class="stack" data-async-form="true">
                 <label class="label">Type</label>
                 <select class="select" name="type" id="createAccountType">
                     <option th:each="t : ${accountTypes}" th:value="${t}" th:text="${t}"></option>
@@ -94,8 +97,8 @@
 
         <div class="card">
             <h2 class="h2">Quick transfer</h2>
-            <p class="muted">Paste account UUIDs. Amount must match currencies.</p>
-            <form method="post" action="/ui/transfer" class="stack">
+            <p class="muted">Paste account UUIDs. You can also copy them from the table with one click.</p>
+            <form method="post" action="/ui/transfer" class="stack" data-async-form="true">
                 <label class="label">From account UUID</label>
                 <input class="input" name="from" placeholder="From account UUID" required />
 

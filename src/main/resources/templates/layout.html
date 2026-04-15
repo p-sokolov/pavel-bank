@@ -12,8 +12,8 @@
     <div class="container topbar__inner">
         <a class="brand" href="/ui/dashboard">PavelBank</a>
         <div class="topbar__right" th:if="${session.UI_USER_ID != null}">
-            <span class="chip">UID: <span th:text="${session.UI_USER_ID}"></span></span>
-            <form method="post" action="/ui/logout" class="inline">
+            <span class="chip">UID: <span class="mono copyable" th:text="${session.UI_USER_ID}" th:attr="data-copy-text=${session.UI_USER_ID},title='Click to copy UID',tabindex='0'" role="button" aria-label="Copy UID"></span></span>
+            <form method="post" action="/ui/logout" class="inline" data-async-form="true">
                 <button class="btn btn--ghost" type="submit">Logout</button>
             </form>
         </div>

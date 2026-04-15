@@ -13,8 +13,8 @@
         <a class="brand" href="/ui/dashboard">← Dashboard</a>
         <div class="topbar__right">
             <span class="chip">Account</span>
-            <span class="chip mono" th:text="${account.id}"></span>
-            <form method="post" action="/ui/logout" class="inline">
+            <span class="chip mono copyable" th:text="${account.id}" th:attr="data-copy-text=${account.id},title='Click to copy account UUID',tabindex='0'" role="button" aria-label="Copy account UUID"></span>
+            <form method="post" action="/ui/logout" class="inline" data-async-form="true">
                 <button class="btn btn--ghost" type="submit">Logout</button>
             </form>
         </div>
@@ -26,7 +26,7 @@
         <div class="row row--space">
             <div>
                 <h1 class="h1">Account</h1>
-                <div class="muted mono" th:text="${account.id}"></div>
+                <div class="muted mono copyable" th:text="${account.id}" th:attr="data-copy-text=${account.id},title='Click to copy account UUID',tabindex='0'" role="button" aria-label="Copy account UUID"></div>
             </div>
             <div class="right">
                 <span class="badge" th:text="${account.type}"></span>
@@ -58,13 +58,13 @@
             <div class="card card--inner">
                 <h2 class="h2">Cash operations</h2>
 
-                <form method="post" th:action="|/ui/accounts/${account.id}/deposit|" class="stack">
+                <form method="post" th:action="|/ui/accounts/${account.id}/deposit|" class="stack" data-async-form="true">
                     <label class="label">Deposit amount</label>
                     <input class="input" name="amount" placeholder="100.00" required />
                     <button class="btn" type="submit">Deposit</button>
                 </form>
 
-                <form method="post" th:action="|/ui/accounts/${account.id}/withdraw|" class="stack">
+                <form method="post" th:action="|/ui/accounts/${account.id}/withdraw|" class="stack" data-async-form="true">
                     <label class="label">Withdraw amount</label>
                     <input class="input" name="amount" placeholder="50.00" required />
                     <button class="btn btn--secondary" type="submit">Withdraw</button>
@@ -74,7 +74,7 @@
             <div class="card card--inner">
                 <h2 class="h2">Actions</h2>
 
-                <form method="post" th:action="|/ui/accounts/${account.id}/unblock|" class="stack" th:if="${account.blocked}">
+                <form method="post" th:action="|/ui/accounts/${account.id}/unblock|" class="stack" th:if="${account.blocked}" data-async-form="true">
                     <button class="btn btn--secondary" type="submit">Unblock</button>
                     <div class="muted">Unblock works only if DEBT is fully repaid.</div>
                 </form>
@@ -82,7 +82,7 @@
                 <details class="details">
                     <summary>Service / demo operations</summary>
                     <div class="stack">
-                        <form method="post" th:action="|/ui/accounts/${account.id}/block|" class="stack">
+                        <form method="post" th:action="|/ui/accounts/${account.id}/block|" class="stack" data-async-form="true">
                             <label class="label">Block reason</label>
                             <select class="select" name="reason">
                                 <option value="FRAUD">FRAUD</option>
@@ -93,13 +93,13 @@
                             <div class="muted">DEBT block is controlled by debt operations.</div>
                         </form>
 
-                        <form method="post" th:action="|/ui/accounts/${account.id}/debt|" class="stack">
+                        <form method="post" th:action="|/ui/accounts/${account.id}/debt|" class="stack" data-async-form="true">
                             <label class="label">Mark debt amount</label>
                             <input class="input" name="amount" placeholder="200.00" />
                             <button class="btn btn--ghost" type="submit" data-confirm="Mark debt for this account?">Mark debt</button>
                         </form>
 
-                        <form method="post" th:action="|/ui/accounts/${account.id}/repay-debt|" class="stack">
+                        <form method="post" th:action="|/ui/accounts/${account.id}/repay-debt|" class="stack" data-async-form="true">
                             <label class="label">Repay debt amount</label>
                             <input class="input" name="amount" placeholder="50.00" />
                             <button class="btn btn--ghost" type="submit">Repay debt</button>
@@ -127,8 +127,12 @@
                 <tbody>
                 <tr th:each="t : ${history}">
                     <td th:text="${t.createdAt}"></td>
-                    <td class="mono" th:text="${t.fromAccountId}"></td>
-                    <td class="mono" th:text="${t.toAccountId}"></td>
+                    <td>
+                        <span class="mono copyable" th:text="${t.fromAccountId}" th:attr="data-copy-text=${t.fromAccountId},title='Click to copy source UUID',tabindex='0'" role="button" aria-label="Copy source UUID"></span>
+                    </td>
+                    <td>
+                        <span class="mono copyable" th:text="${t.toAccountId}" th:attr="data-copy-text=${t.toAccountId},title='Click to copy destination UUID',tabindex='0'" role="button" aria-label="Copy destination UUID"></span>
+                    </td>
                     <td class="num" th:text="${t.amount}"></td>
                     <td th:text="${t.currency}"></td>
                 </tr>

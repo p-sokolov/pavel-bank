@@ -20,7 +20,7 @@
             <h1 class="h1">Login by UID</h1>
             <p class="muted">Paste a user UUID or pick one from the list.</p>
 
-            <form method="post" action="/ui/login" class="stack">
+            <form method="post" action="/ui/login" class="stack" data-async-form="true">
                 <label class="label">User UID</label>
                 <input class="input" name="userId" placeholder="e.g. 550e8400-e29b-41d4-a716-446655440000" required />
                 <button class="btn" type="submit">Login</button>
@@ -29,7 +29,7 @@
             <hr class="sep"/>
 
             <h2 class="h2">Pick existing user</h2>
-            <form method="post" action="/ui/login" class="stack">
+            <form method="post" action="/ui/login" class="stack" data-async-form="true">
                 <label class="label">Users</label>
                 <select class="select" name="userId" th:if="${users != null and !users.isEmpty()}">
                     <option th:each="u : ${users}"
@@ -45,7 +45,7 @@
 
         <section class="card">
             <h2 class="h2">Create user</h2>
-            <form method="post" action="/ui/users" class="stack">
+            <form method="post" action="/ui/users" class="stack" data-async-form="true">
                 <label class="label">Name</label>
                 <input class="input" name="name" placeholder="Alice" required />
                 <button class="btn" type="submit">Create user</button>
@@ -59,7 +59,7 @@
                 <b>Alice</b> and <b>Bob</b>. Their UIDs are printed in the application logs.
             </p>
 
-            <form method="post" action="/ui/reset-session">
+            <form method="post" action="/ui/reset-session" data-async-form="true">
                 <button class="btn btn--ghost" type="submit">Reset session</button>
             </form>
         </section>
