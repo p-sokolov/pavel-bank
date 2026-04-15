@@ -1,11 +1,15 @@
 package com.example.bank_app.transactions.application;
 
-import com.example.bank_app.accounts.application.AccountOperationService;
-import com.example.bank_app.accounts.domain.Currency;
-import com.example.bank_app.audit.application.AuditService;
+import com.example.bank_app.accounts.domain.Account;
+import com.example.bank_app.accounts.application.AccountRepository;
 import com.example.bank_app.transactions.domain.Transaction;
+import com.example.bank_app.transactions.domain.DepositTask;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.examplebank_app.accounts.application.AccountOperationService;
+import com.example.bank_app.accounts.domain.Currency;
+import com.example.bank_app.audit.application.AuditService;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -14,34 +18,45 @@ import java.util.UUID;
 @Service
 public class TransferMoneyUseCase {
 
-    private final AccountOperationService accountOperationService;
+    private final AccountRepository accountRepository;
     private final TransactionRepository transactionRepository;
-    private final AuditService auditService;
+    private final DepositTaskRepository depositTaskRepository;
 
-    public TransferMoneyUseCase(AccountOperationService accountOperationService,
+    public TransferMoneyUseCase(AccountRepository accountRepository,
                                 TransactionRepository transactionRepository,
-                                AuditService auditService) {
-        this.accountOperationService = accountOperationService;
+                                DepositTaskRepository depositTaskRepository) {
+        this.accountRepository = accountRepository;
         this.transactionRepository = transactionRepository;
-        this.auditService = auditService;
+        this.depositTaskRepository = depositTaskRepository;
     }
 
     @Transactional
-    public Transaction transfer(UUID fromId, UUID toId, BigDecimal amount) {
-        if (fromId.equals(toId)) {
-            throw new IllegalArgumentException("Same account");
+    public void transfer(UUID fromAccountId, UUID toAccountId, BigDecimal amount, String currency) {
+        Account fromAccount = accountRepository.findByIdForUpdate(fromAccountId)
+                .orElseThrow(() -> new RuntimeException("Sender account not found"));
+
+        Account toAccount = accountRepository.findById(toAccountId)
+                .orElseThrow(() -> new RuntimeException("Receiver account not found"));
+
+        if (!toAccount.getCurrency().equals(currency) || !fromAccount.getCurrency().equals(currency)) {
+            throw new RuntimeException("Currency mismatch");
         }
 
-        Currency currency = accountOperationService.transfer(fromId, toId, amount);
+        fromAccount.debit(amount);
 
-        Transaction tx = new Transaction(fromId, toId, amount, currency, LocalDateTime.now());
-        transactionRepository.save(tx);
+        Transaction transaction = new Transaction();
+        transaction.setFromAccountId(fromAccountId);
+        transaction.setToAccountId(toAccountId);
+        transaction.setAmount(amount);
+        transaction.setCurrency(currency);
+        transaction.setCreatedAt(LocalDateTime.now());
+        transactionRepository.save(transaction);
 
-        auditService.log(
-                "TRANSFER",
-                "From " + fromId + " to " + toId + " amount " + amount + " " + currency
-        );
-
-        return tx;
+        DepositTask depositTask = new DepositTask();
+        depositTask.setAccountId(toAccountId);
+        depositTask.setAmount(amount);
+        depositTask.setStatus(DepositTask.TaskStatus.PENDING);
+        depositTask.setCreatedAt(LocalDateTime.now());
+        depositTaskRepository.save(depositTask);
     }
 }
