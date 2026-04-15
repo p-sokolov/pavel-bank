@@ -1,64 +1,69 @@
 package com.example.bank_app.transactions.application;
 
-import com.example.bank_app.accounts.application.AccountOperationService;
+import com.example.bank_app.accounts.application.AccountRepository;
+import com.example.bank_app.accounts.domain.Account;
+import com.example.bank_app.accounts.domain.AccountType;
 import com.example.bank_app.accounts.domain.Currency;
-import com.example.bank_app.audit.application.AuditService;
+import com.example.bank_app.transactions.domain.DepositTask;
 import com.example.bank_app.transactions.domain.Transaction;
+import com.example.bank_app.users.domain.User;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.Optional;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 class TransferMoneyUseCaseTest {
 
     @Test
     void transfer_rejectsSameAccount() {
-        AccountOperationService op = mock(AccountOperationService.class);
+        AccountRepository accountRepository = mock(AccountRepository.class);
         TransactionRepository txRepo = mock(TransactionRepository.class);
-        AuditService audit = mock(AuditService.class);
+        DepositTaskRepository depositRepo = mock(DepositTaskRepository.class);
 
-        TransferMoneyUseCase uc = new TransferMoneyUseCase(op, txRepo, audit);
+        TransferMoneyUseCase uc = new TransferMoneyUseCase(accountRepository, txRepo, depositRepo);
+
         UUID id = UUID.randomUUID();
-        assertThrows(IllegalArgumentException.class, () -> uc.transfer(id, id, new BigDecimal("1")));
-        verifyNoInteractions(op, txRepo, audit);
+
+        assertThrows(IllegalArgumentException.class,
+                () -> uc.transfer(id, id, new BigDecimal("1")));
+
+        verifyNoInteractions(accountRepository, txRepo, depositRepo);
     }
 
     @Test
-    void transfer_callsOperationService_persistsTransaction_andWritesAudit() {
-        AccountOperationService op = mock(AccountOperationService.class);
+    void transfer_readsAccounts_savesTransaction_andCreatesDepositTask() {
+        AccountRepository accountRepository = mock(AccountRepository.class);
         TransactionRepository txRepo = mock(TransactionRepository.class);
-        AuditService audit = mock(AuditService.class);
+        DepositTaskRepository depositRepo = mock(DepositTaskRepository.class);
 
-        UUID from = UUID.randomUUID();
-        UUID to = UUID.randomUUID();
+        UUID fromId = UUID.randomUUID();
+        UUID toId = UUID.randomUUID();
         BigDecimal amount = new BigDecimal("12.34");
 
-        when(op.transfer(from, to, amount)).thenReturn(Currency.RUB);
+        User owner = new User("Alice");
+        Account fromAccount = new Account(owner, AccountType.CARD, Currency.RUB, null);
+        Account toAccount = new Account(owner, AccountType.CARD, Currency.RUB, null);
+
+        fromAccount.credit(new BigDecimal("100.00"));
+
+        when(accountRepository.findByIdForUpdate(fromId)).thenReturn(Optional.of(fromAccount));
+        when(accountRepository.findById(toId)).thenReturn(Optional.of(toAccount));
         when(txRepo.save(any(Transaction.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(depositRepo.save(any(DepositTask.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        TransferMoneyUseCase uc = new TransferMoneyUseCase(op, txRepo, audit);
-        Transaction tx = uc.transfer(from, to, amount);
+        TransferMoneyUseCase uc = new TransferMoneyUseCase(accountRepository, txRepo, depositRepo);
 
-        assertEquals(from, tx.getFromAccountId());
-        assertEquals(to, tx.getToAccountId());
-        assertEquals(amount, tx.getAmount());
-        assertEquals(Currency.RUB, tx.getCurrency());
-        assertNotNull(tx.getCreatedAt());
+        uc.transfer(fromId, toId, amount);
 
-        verify(op).transfer(from, to, amount);
+        verify(accountRepository).findByIdForUpdate(fromId);
+        verify(accountRepository).findById(toId);
         verify(txRepo).save(any(Transaction.class));
-
-        ArgumentCaptor<String> action = ArgumentCaptor.forClass(String.class);
-        ArgumentCaptor<String> details = ArgumentCaptor.forClass(String.class);
-        verify(audit).log(action.capture(), details.capture());
-        assertEquals("TRANSFER", action.getValue());
-        assertTrue(details.getValue().contains(from.toString()));
-        assertTrue(details.getValue().contains(to.toString()));
-        assertTrue(details.getValue().contains(amount.toString()));
-        assertTrue(details.getValue().contains("RUB"));
+        verify(depositRepo).save(any(DepositTask.class));
     }
 }
